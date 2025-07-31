@@ -1,4 +1,5 @@
-# TODO: fix image URLs that start with 'https//'
+# TODO: fix Error processing wine 71: 'ascii' codec can't encode character u'\xe2' in position 2: ordinal not in range(128)
+# TODO: fix pagination so that we can scrape more wines
 
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
@@ -148,7 +149,7 @@ class VivinoWineScraper:
             return ''
         
         if image_url.startswith('https//') and not image_url.startswith('https://'):
-            image_url.replace('https//', 'https://', 1)
+            image_url = image_url.replace('https//', 'https://', 1)
         
         try:
             # Clean wine name for filename
@@ -185,11 +186,11 @@ class VivinoWineScraper:
                 current = item
                 for key in key_path.split('.'):
                     current = current.get(key, {})
-                print(current)
+
                 if isinstance(current, basestring):
                     # Remove symbols and clean text
                     clean_value = re.sub(r'_', ' ', current)  # Replace underscores with spaces
-                    print(current, clean_value)
+                    
                     if clean_value:
                         values.append(clean_value)
             

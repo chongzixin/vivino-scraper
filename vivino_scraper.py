@@ -1,4 +1,3 @@
-# TODO: fix Error processing wine 71: 'ascii' codec can't encode character u'\xe2' in position 2: ordinal not in range(128)
 # TODO: fix pagination so that we can scrape more wines
 
 #!/usr/bin/env python
@@ -33,11 +32,14 @@ class VivinoWineScraper:
     def __init__(self, api_token):
         self.api_token = api_token
         self.images_folder = 'images'
+        self.csv_folder = 'csv'
         self.csv_filename = 'wines_data.csv'
         
         # Create images directory if it doesn't exist
         if not os.path.exists(self.images_folder):
             os.makedirs(self.images_folder)
+        if not os.path.exists(self.csv_folder):
+            os.makedirs(self.csv_folder)
     
     def load_dataset_items_from_file(self, filepath):
         """Load all items from a local JSON file instead of an API call"""
@@ -213,16 +215,17 @@ class VivinoWineScraper:
                 summary = item.get('summary', {})
                 vintage = item.get('vintage', {})
                 wine = vintage.get('wine', {}) if vintage else {}
+
+                print("Processing wine {}: {}".format(idx + 1, summary.get('name', 'Unknown Wine')))
                 
                 # Download images
                 wine_name = summary.get('name', 'wine_{}'.format(idx))
                 image_url = summary.get('image', '')
-                # local_image_path = self.download_image(image_url, wine_name)
+                local_image_path = self.download_image(image_url, wine_name)
                 btl_image_url = vintage.get('image', {}).get('variations', {}).get('bottle_medium', '')
-                print("Bottle image URL: {}".format(btl_image_url))
-                # local_btl_image_path = self.download_image(btl_image_url, 'bottle_' + wine_name)
-                local_image_path = ''  # For testing, we won't download images
-                local_btl_image_path = ''  # For testing, we won't download images
+                local_btl_image_path = self.download_image(btl_image_url, 'bottle_' + wine_name)
+                # local_image_path = ''  # For testing, we won't download images
+                # local_btl_image_path = ''  # For testing, we won't download images
                 
                 # Extract and map data according to specifications
                 wine_data = {
@@ -297,7 +300,7 @@ class VivinoWineScraper:
         if local_json_path:
             # Build corresponding CSV filename
             json_base = os.path.splitext(os.path.basename(local_json_path))[0]
-            self.csv_filename = json_base + ".csv"
+            self.csv_filename = os.path.join(self.csv_folder, json_base + ".csv")
 
             # For testing: read from local file
             raw_wine_data = self.load_dataset_items_from_file(local_json_path)

@@ -1,4 +1,4 @@
-# TODO: fix pagination so that we can scrape more wines
+# TODO: print current time
 
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
@@ -279,16 +279,14 @@ class VivinoWineScraper:
                 # Encode strings to UTF-8 for Python 2 compatibility
                 encoded_wine = {}
                 for key, value in wine.items():
-                    if isinstance(value, unicode):
-                        encoded_wine[key] = value.encode('utf-8')
-                    elif isinstance(value, str):
-                        # Try decoding to unicode and then encode as utf-8
-                        try:
-                            encoded_wine[key] = value.decode('utf-8').encode('utf-8')
-                        except:
-                            encoded_wine[key] = value  # fallback
-                    else:
-                        encoded_wine[key] = str(value)
+                    try:
+                        if isinstance(value, unicode):
+                            encoded_wine[key] = value.encode('utf-8')
+                        else:
+                            encoded_wine[key] = unicode(value).encode('utf-8')
+                    except Exception as e:
+                        print("Encoding error for key {}: {}".format(key, str(e)))
+                        encoded_wine[key] = ''
 
                 writer.writerow(encoded_wine)
         

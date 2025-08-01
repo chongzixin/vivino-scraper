@@ -15,6 +15,9 @@ import unicodedata
 from datetime import datetime
 from urlparse import urlparse
 
+# fix unicode handling in Python 2
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 # Load environment variables from .env file
 def load_dotenv(dotenv_path='.env'):
@@ -216,7 +219,6 @@ class VivinoWineScraper:
         # Normalize and remove accents
         return unicodedata.normalize('NFKD', text).encode('ascii', 'ignore')
 
-
     def process_wine_data(self, raw_items):
         """Process raw wine data according to the specified mapping"""
         processed_wines = []
@@ -294,9 +296,17 @@ class VivinoWineScraper:
                 # Encode strings to UTF-8 for Python 2 compatibility
                 encoded_wine = {}
                 for key, value in wine.items():
-                    if isinstance(value, unicode):
-                        # Replace unicode accented chars with ASCII closest equivalent
-                        encoded_wine[key] = self.strip_accents(value)
+                    try:
+                        # Convert all values to Unicode, then encode to UTF-8 for writing
+                        if isinstance(value, unicode):
+                            encoded_wine[key] = value.encode('utf-8')
+                        elif isinstance(value, str):
+                            encoded_wine[key] = value.decode('utf-8').encode('utf-8')
+                        else:
+                            encoded_wine[key] = unicode(value).encode('utf-8')
+                    except Exception as e:
+                        print("Encoding error for key {}: {}".format(key, str(e)))
+                        encoded_wine[key] = ''
 
                 writer.writerow(encoded_wine)
         

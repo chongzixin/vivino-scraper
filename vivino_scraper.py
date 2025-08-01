@@ -12,6 +12,7 @@ import re
 import os
 import sys
 import unicodedata
+from datetime import datetime
 from urlparse import urlparse
 
 
@@ -226,7 +227,12 @@ class VivinoWineScraper:
                 vintage = item.get('vintage', {})
                 wine = vintage.get('wine', {}) if vintage else {}
 
-                print("Processing wine {}: {}".format(idx + 1, summary.get('name', 'Unknown Wine')))
+                # Print current time and wine being processed to console
+                print("{} Processing wine {}: {}".format(
+                    datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    idx + 1,
+                    summary.get('name', 'Unknown Wine')
+                ))
                 
                 # Download images
                 wine_name = summary.get('name', 'wine_{}'.format(idx))

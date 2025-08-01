@@ -10,6 +10,7 @@ import urllib2
 import time
 import re
 import os
+import sys
 from urlparse import urlparse
 
 # Load environment variables from .env file
@@ -343,6 +344,12 @@ if __name__ == "__main__":
     # Initialize scraper with your API token
     scraper = VivinoWineScraper(API_TOKEN)
     
-    # Run the complete scraping process
-    scraper.run_complete_scrape(local_json_path='json/syrah.json') # provide a file name to process it
-    # scraper.run_complete_scrape() # or leave empty to run the full scrape via API
+    # if a command line argument is provided, use it as the local JSON path
+    if len(sys.argv) > 1:
+        local_json_path = sys.argv[1]
+        scraper.run_complete_scrape(local_json_path=local_json_path)
+    elif len(sys.argv) > 2:
+        print("Usage: python vivino_scraper.py [optional_path_to_json]")
+        sys.exit(1)
+    else:
+        scraper.run_complete_scrape()

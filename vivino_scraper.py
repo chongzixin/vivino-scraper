@@ -64,7 +64,7 @@ class VivinoWineScraper:
                 "apifyProxyGroups": ["RESIDENTIAL"],
             },
             "sortby": "ratings_count",
-            "maximum": 40,
+            "maximum": 10000,
             "delay": 2,
             "ratingmin": "3.2",
             "retries": 3,
@@ -205,16 +205,17 @@ class VivinoWineScraper:
         
         for idx, item in enumerate(raw_items):
             try:
-                # print(item)
-
                 summary = item.get('summary', {})
                 vintage = item.get('vintage', {})
                 wine = vintage.get('wine', {}) if vintage else {}
                 
-                # Download image
-                image_url = summary.get('image', '')
+                # Download images
                 wine_name = summary.get('name', 'wine_{}'.format(idx))
+                image_url = summary.get('image', '')
                 local_image_path = self.download_image(image_url, wine_name)
+                btl_image_url = wine.get('image', {}).get('variations', {}).get('bottle_medium', '')
+                local_btl_image_path = self.download_image(btl_image_url, 'bottle_' + wine_name)
+                # local_image_path = ''  # For testing, we won't download images
                 
                 # Extract and map data according to specifications
                 wine_data = {
@@ -222,7 +223,8 @@ class VivinoWineScraper:
                     'country': summary.get('country', ''),
                     'price': summary.get('price', ''),
                     'rating': summary.get('rating', ''),
-                    'image': local_image_path,
+                    'image_url': local_image_path if local_image_path else '',
+                    'bottle_image_url': local_btl_image_path if local_btl_image_path else '',
                     'region': wine.get('region', {}).get('name', '') if wine.get('region') else '',
                     'winery': wine.get('winery', {}).get('name', '') if wine.get('winery') else '',
                     'flavor': self.clean_array_to_string(
@@ -328,4 +330,5 @@ if __name__ == "__main__":
     scraper = VivinoWineScraper(API_TOKEN)
     
     # Run the complete scraping process
-    scraper.run_complete_scrape(local_json_path='sample-response.json')
+    scraper.run_complete_scrape(local_json_path='sample-response.json') # provide a file name to process it
+    # scraper.run_complete_scrape() # or leave empty to run the full scrape via API

@@ -148,8 +148,13 @@ class VivinoWineScraper:
         if not image_url:
             return ''
         
+        # for summary image
         if image_url.startswith('https//') and not image_url.startswith('https://'):
             image_url = image_url.replace('https//', 'https://', 1)
+
+        # for bottle image
+        if image_url.startswith('//') and not image_url.startswith('https://'):
+            image_url = image_url.replace('//', 'https://', 1)
         
         try:
             # Clean wine name for filename
@@ -212,10 +217,12 @@ class VivinoWineScraper:
                 # Download images
                 wine_name = summary.get('name', 'wine_{}'.format(idx))
                 image_url = summary.get('image', '')
-                local_image_path = self.download_image(image_url, wine_name)
-                btl_image_url = wine.get('image', {}).get('variations', {}).get('bottle_medium', '')
-                local_btl_image_path = self.download_image(btl_image_url, 'bottle_' + wine_name)
-                # local_image_path = ''  # For testing, we won't download images
+                # local_image_path = self.download_image(image_url, wine_name)
+                btl_image_url = vintage.get('image', {}).get('variations', {}).get('bottle_medium', '')
+                print("Bottle image URL: {}".format(btl_image_url))
+                # local_btl_image_path = self.download_image(btl_image_url, 'bottle_' + wine_name)
+                local_image_path = ''  # For testing, we won't download images
+                local_btl_image_path = ''  # For testing, we won't download images
                 
                 # Extract and map data according to specifications
                 wine_data = {
@@ -258,7 +265,7 @@ class VivinoWineScraper:
             print("No wine data to save!")
             return
         
-        fieldnames = ['name', 'country', 'price', 'rating', 'image', 'region', 'winery', 'flavor', 'food_pairing', 'grapes']
+        fieldnames = ['name', 'country', 'price', 'rating', 'image_url', 'bottle_image_url', 'region', 'winery', 'flavor', 'food_pairing', 'grapes']
         
         with open(self.csv_filename, 'wb') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -288,6 +295,10 @@ class VivinoWineScraper:
         print("Starting Vivino wine scraping...")
         
         if local_json_path:
+            # Build corresponding CSV filename
+            json_base = os.path.splitext(os.path.basename(local_json_path))[0]
+            self.csv_filename = json_base + ".csv"
+
             # For testing: read from local file
             raw_wine_data = self.load_dataset_items_from_file(local_json_path)
         else:
@@ -330,5 +341,5 @@ if __name__ == "__main__":
     scraper = VivinoWineScraper(API_TOKEN)
     
     # Run the complete scraping process
-    scraper.run_complete_scrape(local_json_path='sample-response.json') # provide a file name to process it
+    scraper.run_complete_scrape(local_json_path='json/syrah.json') # provide a file name to process it
     # scraper.run_complete_scrape() # or leave empty to run the full scrape via API

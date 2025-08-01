@@ -11,7 +11,9 @@ import time
 import re
 import os
 import sys
+import unicodedata
 from urlparse import urlparse
+
 
 # Load environment variables from .env file
 def load_dotenv(dotenv_path='.env'):
@@ -207,6 +209,13 @@ class VivinoWineScraper:
             print("Error processing array data: {}".format(str(e)))
             return ''
     
+    def strip_accents(text):
+        if not isinstance(text, unicode):
+            text = unicode(text, 'utf-8', errors='ignore')
+        # Normalize and remove accents
+        return unicodedata.normalize('NFKD', text).encode('ascii', 'ignore')
+
+
     def process_wine_data(self, raw_items):
         """Process raw wine data according to the specified mapping"""
         processed_wines = []
@@ -279,14 +288,9 @@ class VivinoWineScraper:
                 # Encode strings to UTF-8 for Python 2 compatibility
                 encoded_wine = {}
                 for key, value in wine.items():
-                    try:
-                        if isinstance(value, unicode):
-                            encoded_wine[key] = value.encode('utf-8')
-                        else:
-                            encoded_wine[key] = unicode(value).encode('utf-8')
-                    except Exception as e:
-                        print("Encoding error for key {}: {}".format(key, str(e)))
-                        encoded_wine[key] = ''
+                    if isinstance(value, unicode):
+                        # Replace unicode accented chars with ASCII closest equivalent
+                        encoded_wine[key] = self.strip_accents(value)
 
                 writer.writerow(encoded_wine)
         

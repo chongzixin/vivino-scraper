@@ -224,6 +224,9 @@ class VivinoWineScraper:
         processed_wines = []
         
         for idx, item in enumerate(raw_items):
+            if(idx < skip_rows):
+                continue
+
             try:
                 summary = item.get('summary', {})
                 vintage = item.get('vintage', {})
@@ -361,12 +364,18 @@ class VivinoWineScraper:
 if __name__ == "__main__":
     # Initialize scraper with your API token
     scraper = VivinoWineScraper(API_TOKEN)
+    skip_rows = 0
     
     # if a command line argument is provided, use it as the local JSON path
     if len(sys.argv) > 1:
+        # skip rows if specified in command line
+        if len(sys.argv) > 2:
+            skip_rows = int(sys.argv[2])
+            print("Skipping first {} rows in the local JSON file".format(skip_rows))
+
         local_json_path = sys.argv[1]
-        scraper.run_complete_scrape(local_json_path=local_json_path)
-    elif len(sys.argv) > 2:
+        scraper.run_complete_scrape(local_json_path=local_json_path)    
+    elif len(sys.argv) > 3:
         print("Usage: python vivino_scraper.py [optional_path_to_json]")
         sys.exit(1)
     else:

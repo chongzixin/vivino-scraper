@@ -1,5 +1,3 @@
-# TODO: print current time
-
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
